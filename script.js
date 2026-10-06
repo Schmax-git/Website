@@ -1,10 +1,12 @@
 /**
  * SWEET BIRTHDAY JOURNEY - MAIN SCRIPT
- * Manages interactions, scroll-based audio section transitions,
- * canvas particles, scratch-card, candle blowing, balloon popping, and personalization.
+ * Reads all data directly from window.SURPRISE_CONFIG (assets/config.js)
+ * Enables complete dynamic personalization directly from code.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+  const config = window.SURPRISE_CONFIG || {};
+
   // Elements
   const entranceGate = document.getElementById('entrance-gate');
   const btnEnter = document.getElementById('btn-enter');
@@ -22,15 +24,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const sections = document.querySelectorAll('.section-wrapper');
 
   // Hero Elements
-  const heroBubbles = document.querySelectorAll('.reveal-bubble');
+  const heroBubblesContainer = document.getElementById('hero-bubbles');
   const heroRevealBox = document.getElementById('hero-bubble-reveal-box');
   const heroRevealText = document.getElementById('hero-bubble-text');
+  const heroParagraph = document.getElementById('hero-custom-message');
 
-  // Polaroid Cards
-  const polaroids = document.querySelectorAll('.polaroid-card');
+  // Polaroid Grid
+  const polaroidsGrid = document.getElementById('polaroids-grid');
 
   // Cake Elements
-  const candles = document.querySelectorAll('.candle');
+  const candlesRack = document.getElementById('candles-rack');
   const btnBlowCandles = document.getElementById('btn-blow-candles');
   const btnCutCake = document.getElementById('btn-cut-cake');
   const btnRelightCandles = document.getElementById('btn-relight-candles');
@@ -42,16 +45,16 @@ document.addEventListener('DOMContentLoaded', () => {
   const envelopeSeal = document.getElementById('envelope-seal');
   const scratchCanvas = document.getElementById('scratch-canvas');
   const btnScratchReveal = document.getElementById('btn-scratch-reveal');
-  const giftBoxes = document.querySelectorAll('.gift-box-item');
+  const giftBoxesGrid = document.querySelector('.gift-boxes-grid');
 
   // Balloons Elements
   const balloonField = document.getElementById('balloon-field');
-  const balloons = document.querySelectorAll('.heart-balloon');
   const poppedCountEl = document.getElementById('popped-count');
   const reasonsList = document.getElementById('reasons-list');
   const reasonsEmptyNotice = document.getElementById('reasons-empty-notice');
 
   // Finale Elements
+  const finaleLetterBody = document.getElementById('finale-letter-body');
   const btnFireworks = document.getElementById('btn-fireworks');
   const btnReplayJourney = document.getElementById('btn-replay-journey');
   const btnSendHug = document.getElementById('btn-send-hug');
@@ -80,18 +83,301 @@ document.addEventListener('DOMContentLoaded', () => {
   // State Variables
   let unlocked = false;
   let poppedBalloonsCount = 0;
+  let totalBalloonsCount = (config.balloonsReasons && config.balloonsReasons.length) || 6;
   let hugsSentCount = parseInt(localStorage.getItem('birthday_hugs_count') || '0', 10);
   if (hugCountNumber) hugCountNumber.textContent = hugsSentCount;
 
-  // Reasons list for balloons
-  const sweetReasons = [
-    { num: 1, text: "Your empathy and ability to truly understand people is a rare superpower." },
-    { num: 2, text: "The spontaneous laughter we share when something ridiculously silly happens." },
-    { num: 3, text: "Your determination to never give up, even when things get overwhelming." },
-    { num: 4, text: "How you make everyone around you feel valued, safe, and truly listened to." },
-    { num: 5, text: "Your gorgeous smile that immediately brightens any room you walk into." },
-    { num: 6, text: "Just being you: authentic, fiercely loyal, deeply thoughtful, and irreplaceable." }
-  ];
+  /* ===================================================================
+     APPLY DYNAMIC CONFIGURATION (FROM assets/config.js)
+     =================================================================== */
+  function applyConfig() {
+    // 1. Recipient & Sender names directly from config
+    const recipientName = config.recipientName || 'Dia';
+    const senderName = config.senderName || 'Manix';
+
+    document.querySelectorAll('.recipient-name-display').forEach(el => el.textContent = recipientName);
+    document.querySelectorAll('.author-signature-display').forEach(el => el.textContent = senderName);
+
+    // 2. Hero Section
+    if (config.hero) {
+      if (config.hero.welcomeParagraph && heroParagraph) {
+        heroParagraph.textContent = config.hero.welcomeParagraph;
+      }
+
+      // Render Hero Bubbles
+      if (config.hero.bubbles && heroBubblesContainer) {
+        heroBubblesContainer.innerHTML = '';
+        config.hero.bubbles.forEach(b => {
+          const bubble = document.createElement('div');
+          bubble.className = 'reveal-bubble';
+          bubble.setAttribute('data-msg', b.message);
+          bubble.innerHTML = `
+            <span class="bubble-heart">${b.emoji}</span>
+            <span class="bubble-label">${b.preview}</span>
+          `;
+          bubble.addEventListener('click', () => {
+            window.audioEngine.playSparkleSound();
+            heroRevealText.textContent = b.message;
+            heroRevealBox.classList.remove('hidden');
+            bubble.classList.add('popped');
+            const rect = bubble.getBoundingClientRect();
+            spawnMiniHearts(rect.left + rect.width / 2, rect.top + rect.height / 2, 8);
+          });
+          heroBubblesContainer.appendChild(bubble);
+        });
+      }
+    }
+
+    // 3. Polaroid Memory Lane
+    if (config.memories && polaroidsGrid) {
+      polaroidsGrid.innerHTML = '';
+      config.memories.forEach((m, idx) => {
+        const card = document.createElement('div');
+        card.className = 'polaroid-card';
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('role', 'button');
+        card.setAttribute('aria-label', `Flip polaroid: ${m.title}`);
+
+        // Normalize custom image path or fallback to assets/images/photo{idx + 1}.jpg
+        let imageSrc = (m.image || '').trim();
+        if (!imageSrc) {
+          imageSrc = `assets/images/photo${idx + 1}.jpg`;
+        } else if (!imageSrc.startsWith('http://') && !imageSrc.startsWith('https://') && !imageSrc.startsWith('data:') && !imageSrc.startsWith('/') && !imageSrc.startsWith('assets/')) {
+          imageSrc = `assets/images/${imageSrc}`;
+        }
+
+        const fallbackPhoto = `assets/images/photo${idx + 1}.jpg`;
+        const photoContent = `
+          <img src="${imageSrc}" alt="${m.title}" class="photo-img" loading="lazy" onerror="if(this.dataset.fallbackTried !== 'true' && this.getAttribute('src') !== '${fallbackPhoto}'){ this.dataset.fallbackTried = 'true'; this.src = '${fallbackPhoto}'; } else { this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex'; }">
+          <div class="photo-art photo-art-${(idx % 6) + 1}" style="display:none;">
+            <span class="photo-emoji">${m.defaultEmoji || '💖'}</span>
+            <span class="photo-subtext">${m.subtitle || ''}</span>
+          </div>`;
+
+        card.innerHTML = `
+          <div class="card-inner">
+            <div class="card-front">
+              <div class="tape-strip"></div>
+              <div class="photo-frame">
+                ${photoContent}
+              </div>
+              <div class="polaroid-caption">
+                <h3>${m.title}</h3>
+                <span class="flip-hint">↺ Tap to flip</span>
+              </div>
+            </div>
+            <div class="card-back">
+              <div class="back-heart">${m.defaultEmoji || '💌'}</div>
+              <h4 class="back-title">${m.memoryTitle}</h4>
+              <p class="back-text">${m.memoryText}</p>
+              <span class="memory-date">${m.dateTag}</span>
+            </div>
+          </div>
+        `;
+
+        const flipCard = () => {
+          card.classList.toggle('flipped');
+          window.audioEngine.playCardFlipSound();
+          const rect = card.getBoundingClientRect();
+          spawnMiniHearts(rect.left + rect.width / 2, rect.top + rect.height / 2, 6);
+        };
+
+        card.addEventListener('click', flipCard);
+        card.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            flipCard();
+          }
+        });
+
+        polaroidsGrid.appendChild(card);
+      });
+    }
+
+    // 4. Cake Section
+    if (config.cake) {
+      if (candlesRack && config.cake.numberOfCandles) {
+        candlesRack.innerHTML = '';
+        for (let i = 1; i <= config.cake.numberOfCandles; i++) {
+          const candle = document.createElement('div');
+          candle.className = 'candle';
+          candle.setAttribute('data-id', i);
+          candle.innerHTML = `
+            <div class="flame active"><span class="flame-core"></span></div>
+            <div class="wick"></div>
+            <div class="candle-stick candle-stripe-${(i % 3) + 1}"></div>
+          `;
+          candle.addEventListener('click', () => {
+            const flame = candle.querySelector('.flame');
+            if (flame && flame.classList.contains('active')) {
+              flame.classList.remove('active');
+              flame.classList.add('smoking');
+              window.audioEngine.playCandleBlowSound();
+              setTimeout(() => flame.classList.remove('smoking'), 1200);
+              checkAllCandlesBlown();
+            }
+          });
+          candlesRack.appendChild(candle);
+        }
+      }
+
+      if (cakeWishReveal) {
+        const titleEl = cakeWishReveal.querySelector('.wish-title');
+        const bodyEl = cakeWishReveal.querySelector('.wish-body');
+        if (titleEl && config.cake.wishRevealedTitle) titleEl.textContent = config.cake.wishRevealedTitle;
+        if (bodyEl && config.cake.wishRevealedBody) bodyEl.textContent = config.cake.wishRevealedBody;
+      }
+    }
+
+    // 5. Love Vault
+    if (config.vault) {
+      // Envelope
+      if (config.vault.envelope) {
+        const savedLetter = localStorage.getItem('birthday_letter_text');
+        const envelopeBody = document.getElementById('envelope-custom-letter');
+        const envelopeDate = document.querySelector('.paper-date');
+        const envelopeTitle = document.querySelector('.paper-title');
+        const envelopeSign = document.querySelector('.paper-sign');
+
+        if (envelopeBody) envelopeBody.textContent = config.vault.envelope.letterBody;
+        if (envelopeDate && config.vault.envelope.tag) envelopeDate.textContent = config.vault.envelope.tag;
+        if (envelopeTitle && config.vault.envelope.salutation) envelopeTitle.textContent = config.vault.envelope.salutation;
+        if (envelopeSign && config.vault.envelope.signoff) envelopeSign.textContent = config.vault.envelope.signoff;
+      }
+
+      // Scratch Card
+      if (config.vault.scratchCard) {
+        const titleEl = document.querySelector('.scratch-title');
+        const descEl = document.querySelector('.scratch-coupon-desc');
+        const codeEl = document.querySelector('.scratch-code');
+        if (titleEl) titleEl.textContent = config.vault.scratchCard.title;
+        if (descEl) descEl.textContent = config.vault.scratchCard.description;
+        if (codeEl) codeEl.textContent = config.vault.scratchCard.code;
+      }
+
+      // Gift Boxes
+      if (config.vault.giftBoxes && giftBoxesGrid) {
+        giftBoxesGrid.innerHTML = '';
+        config.vault.giftBoxes.forEach((g, idx) => {
+          const item = document.createElement('div');
+          item.className = 'gift-box-item';
+          item.setAttribute('data-box', idx + 1);
+          item.setAttribute('role', 'button');
+          item.setAttribute('tabindex', '0');
+          item.setAttribute('aria-label', `Unwrap ${g.title}`);
+
+          item.innerHTML = `
+            <div class="gift-box-3d">
+              <div class="gift-box-lid">
+                <div class="gift-ribbon-bow">🎀</div>
+              </div>
+              <div class="gift-box-body">
+                <span class="box-number">${g.number || `Box #${idx + 1}`}</span>
+              </div>
+            </div>
+            <div class="gift-revealed-modal hidden">
+              <span class="revealed-emoji">${g.emoji || '🎁'}</span>
+              <h4>${g.title}</h4>
+              <p>${g.message}</p>
+            </div>
+            <span class="box-tap-hint">Tap to Unwrap</span>
+          `;
+
+          item.addEventListener('click', () => {
+            if (!item.classList.contains('unwrapped')) {
+              item.classList.add('unwrapped');
+              window.audioEngine.playUnwrapSound();
+              const modal = item.querySelector('.gift-revealed-modal');
+              if (modal) modal.classList.remove('hidden');
+              const hint = item.querySelector('.box-tap-hint');
+              if (hint) hint.textContent = '🎉 Unwrapped!';
+              const rect = item.getBoundingClientRect();
+              spawnMiniHearts(rect.left + rect.width / 2, rect.top + rect.height / 2, 12);
+            }
+          });
+
+          giftBoxesGrid.appendChild(item);
+        });
+      }
+    }
+
+    // 6. Balloon Garden
+    if (config.balloonsReasons && balloonField) {
+      balloonField.innerHTML = '';
+      totalBalloonsCount = config.balloonsReasons.length;
+      const countDisplay = document.querySelector('.balloon-counter-badge');
+      if (countDisplay) {
+        countDisplay.innerHTML = `Balloons Popped: <span id="popped-count">0</span> / ${totalBalloonsCount}`;
+      }
+
+      const balloonColors = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5', 'color-6'];
+      const balloonEmojis = ['❤️', '💕', '💖', '💗', '💝', '💓'];
+
+      config.balloonsReasons.forEach((reason, idx) => {
+        const balloon = document.createElement('div');
+        balloon.className = 'heart-balloon';
+        balloon.setAttribute('data-reason', idx + 1);
+        balloon.setAttribute('role', 'button');
+        balloon.setAttribute('tabindex', '0');
+        balloon.setAttribute('aria-label', `Pop Balloon ${idx + 1}`);
+
+        balloon.innerHTML = `
+          <div class="balloon-shape ${balloonColors[idx % balloonColors.length]}">
+            <span class="balloon-heart-symbol">${balloonEmojis[idx % balloonEmojis.length]}</span>
+          </div>
+          <div class="balloon-string"></div>
+          <span class="balloon-tag">Reason #${idx + 1}</span>
+        `;
+
+        balloon.addEventListener('click', () => {
+          if (balloon.classList.contains('popped')) return;
+
+          balloon.classList.add('popped');
+          poppedBalloonsCount++;
+          const curCount = document.getElementById('popped-count');
+          if (curCount) curCount.textContent = poppedBalloonsCount;
+
+          window.audioEngine.playBalloonPopSound();
+
+          const rect = balloon.getBoundingClientRect();
+          triggerCelebratoryConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 25);
+
+          if (reasonsEmptyNotice) reasonsEmptyNotice.style.display = 'none';
+          const card = document.createElement('div');
+          card.className = 'reason-card';
+          card.innerHTML = `
+            <span class="reason-num">Reason #${idx + 1}</span>
+            <p class="reason-quote">“${reason}”</p>
+          `;
+          reasonsList.appendChild(card);
+
+          if (poppedBalloonsCount === totalBalloonsCount) {
+            setTimeout(() => {
+              triggerCelebratoryConfetti(window.innerWidth / 2, window.innerHeight / 2, 100);
+              window.audioEngine.playSparkleSound();
+            }, 500);
+          }
+        });
+
+        balloonField.appendChild(balloon);
+      });
+    }
+
+    // 7. Grand Finale Paragraphs
+    if (config.finale && finaleLetterBody) {
+      if (config.finale.paragraphs && config.finale.paragraphs.length > 0) {
+        finaleLetterBody.innerHTML = '';
+        config.finale.paragraphs.forEach(p => {
+          const pEl = document.createElement('p');
+          pEl.textContent = p;
+          finaleLetterBody.appendChild(pEl);
+        });
+      }
+    }
+  }
+
+  // Run initial population from config
+  applyConfig();
 
   /* ===================================================================
      1. UNLOCK / ENTRANCE GATE
@@ -105,11 +391,9 @@ document.addEventListener('DOMContentLoaded', () => {
     window.audioEngine.switchSectionTrack(0);
     updateAudioUI(true);
 
-    // Audio Chime + Confetti
     window.audioEngine.playSparkleSound();
     triggerCelebratoryConfetti(window.innerWidth / 2, window.innerHeight / 2, 60);
 
-    // Fade out gate
     entranceGate.classList.add('unlocked');
   }
 
@@ -163,16 +447,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  /* ===================================================================
-     3. SCROLL-TRIGGERED SECTION TRACK SWITCHER & NAV OBSERVER
-     =================================================================== */
-  const sectionObserver = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        const trackIndex = parseInt(entry.target.getAttribute('data-track'), 10);
-        const sectionId = entry.target.getAttribute('id');
+  let scrollTicking = false;
+  let activeSectionTrack = -1;
 
-        // Update Nav dots
+  function updateActiveSectionOnScroll() {
+    const viewportMiddle = window.innerHeight * 0.45;
+    let closestSection = null;
+    let minDistance = Infinity;
+
+    sections.forEach((sec) => {
+      const rect = sec.getBoundingClientRect();
+      if (rect.top <= viewportMiddle && rect.bottom >= viewportMiddle) {
+        closestSection = sec;
+        minDistance = 0;
+      } else if (minDistance !== 0) {
+        const dist = Math.abs(rect.top - viewportMiddle);
+        if (dist < minDistance) {
+          minDistance = dist;
+          closestSection = sec;
+        }
+      }
+    });
+
+    if (closestSection) {
+      const trackIndex = parseInt(closestSection.getAttribute('data-track'), 10);
+      const sectionId = closestSection.getAttribute('id');
+
+      if (!isNaN(trackIndex) && trackIndex !== activeSectionTrack) {
+        activeSectionTrack = trackIndex;
+
+        // Update nav dots
         navDots.forEach(dot => {
           if (dot.getAttribute('href') === '#' + sectionId) {
             dot.classList.add('active');
@@ -182,68 +486,24 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Switch background track
-        if (unlocked && !isNaN(trackIndex)) {
+        if (unlocked) {
           window.audioEngine.switchSectionTrack(trackIndex);
         }
       }
-    });
-  }, {
-    threshold: 0.45
-  });
+    }
 
-  sections.forEach(sec => sectionObserver.observe(sec));
+    scrollTicking = false;
+  }
 
-  /* ===================================================================
-     4. SECTION 1: HERO INTERACTIVE BUBBLES
-     =================================================================== */
-  heroBubbles.forEach(bubble => {
-    bubble.addEventListener('click', (e) => {
-      window.audioEngine.playSparkleSound();
-      const msg = bubble.getAttribute('data-msg');
-      heroRevealText.textContent = msg;
-      heroRevealBox.classList.remove('hidden');
-      bubble.classList.add('popped');
+  window.addEventListener('scroll', () => {
+    if (!scrollTicking) {
+      window.requestAnimationFrame(updateActiveSectionOnScroll);
+      scrollTicking = true;
+    }
+  }, { passive: true });
 
-      const rect = bubble.getBoundingClientRect();
-      spawnMiniHearts(rect.left + rect.width / 2, rect.top + rect.height / 2, 8);
-    });
-  });
 
-  /* ===================================================================
-     5. SECTION 2: POLAROID 3D FLIP CARDS
-     =================================================================== */
-  polaroids.forEach(card => {
-    const handleFlip = () => {
-      card.classList.toggle('flipped');
-      window.audioEngine.playCardFlipSound();
-      const rect = card.getBoundingClientRect();
-      spawnMiniHearts(rect.left + rect.width / 2, rect.top + rect.height / 2, 5);
-    };
-
-    card.addEventListener('click', handleFlip);
-    card.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        handleFlip();
-      }
-    });
-  });
-
-  /* ===================================================================
-     6. SECTION 3: THE BIRTHDAY CAKE & CANDLE BLOWING
-     =================================================================== */
-  candles.forEach(candle => {
-    candle.addEventListener('click', () => {
-      const flame = candle.querySelector('.flame');
-      if (flame && flame.classList.contains('active')) {
-        flame.classList.remove('active');
-        flame.classList.add('smoking');
-        window.audioEngine.playCandleBlowSound();
-        setTimeout(() => flame.classList.remove('smoking'), 1200);
-        checkAllCandlesBlown();
-      }
-    });
-  });
+  updateActiveSectionOnScroll();
 
   function checkAllCandlesBlown() {
     const activeCandles = document.querySelectorAll('.flame.active');
@@ -262,7 +522,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnBlowCandles.addEventListener('click', () => {
     window.audioEngine.playCandleBlowSound();
-    candles.forEach((c, idx) => {
+    const currentCandles = document.querySelectorAll('.candle');
+    currentCandles.forEach((c, idx) => {
       setTimeout(() => {
         const flame = c.querySelector('.flame');
         if (flame) {
@@ -274,11 +535,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     setTimeout(() => {
       celebrateWish();
-    }, candles.length * 120 + 300);
+    }, currentCandles.length * 120 + 300);
   });
 
   btnRelightCandles.addEventListener('click', () => {
-    candles.forEach(c => {
+    const currentCandles = document.querySelectorAll('.candle');
+    currentCandles.forEach(c => {
       const flame = c.querySelector('.flame');
       if (flame) flame.classList.add('active');
     });
@@ -291,27 +553,58 @@ document.addEventListener('DOMContentLoaded', () => {
   btnCutCake.addEventListener('click', () => {
     window.audioEngine.playSparkleSound();
     cakeSliceNote.style.animation = 'gentlePulse 1s';
-    cakeSliceNote.innerHTML = `<span>🍰 <strong>A piece of pure happiness just for you!</strong> (And yes, you get the biggest slice with all the strawberries!) 🍓</span>`;
+    const sliceMsg = (config.cake && config.cake.cakeSliceMessage) ||
+      `🍰 A sweet slice of happiness for the sweetest person alive! 🍓`;
+    cakeSliceNote.innerHTML = `<span>${sliceMsg}</span>`;
     triggerCelebratoryConfetti(window.innerWidth / 2, window.innerHeight / 2, 40);
   });
 
-  /* ===================================================================
-     7. SECTION 4: THE LOVE VAULT, ENVELOPE, SCRATCH & GIFTS
-     =================================================================== */
-  // Envelope
-  function toggleEnvelope() {
-    envelope.classList.toggle('open');
-    window.audioEngine.playUnwrapSound();
-    const rect = envelope.getBoundingClientRect();
-    spawnMiniHearts(rect.left + rect.width / 2, rect.top + rect.height / 2, 10);
+  function openEnvelope() {
+    if (!envelope.classList.contains('open')) {
+      envelope.classList.add('open');
+      window.audioEngine.playUnwrapSound();
+      const sealLabel = document.querySelector('.seal-tap-label');
+      if (sealLabel) sealLabel.textContent = 'Click to Fold';
+      const rect = envelope.getBoundingClientRect();
+      spawnMiniHearts(rect.left + rect.width / 2, rect.top + rect.height / 2, 12);
+    }
   }
+
+  function closeEnvelope() {
+    if (envelope.classList.contains('open')) {
+      envelope.classList.remove('open');
+      window.audioEngine.playUnwrapSound();
+      const sealLabel = document.querySelector('.seal-tap-label');
+      if (sealLabel) sealLabel.textContent = 'Click to Open';
+    }
+  }
+
+  function toggleEnvelope(e) {
+    // If clicking inside the paper while reading/scrolling, don't close
+    if (envelope.classList.contains('open') && e.target.closest('#envelope-paper') && !e.target.closest('#btn-fold-letter')) {
+      return;
+    }
+    if (envelope.classList.contains('open')) {
+      closeEnvelope();
+    } else {
+      openEnvelope();
+    }
+  }
+
   envelope.addEventListener('click', toggleEnvelope);
   envelopeSeal.addEventListener('click', (e) => {
     e.stopPropagation();
-    toggleEnvelope();
+    toggleEnvelope(e);
   });
 
-  // Scratch to Reveal Canvas Card
+  const btnFoldLetter = document.getElementById('btn-fold-letter');
+  if (btnFoldLetter) {
+    btnFoldLetter.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeEnvelope();
+    });
+  }
+
   function initScratchCard() {
     if (!scratchCanvas) return;
     const ctx = scratchCanvas.getContext('2d');
@@ -320,7 +613,6 @@ document.addEventListener('DOMContentLoaded', () => {
     scratchCanvas.width = width;
     scratchCanvas.height = height;
 
-    // Golden foil gradient
     const grad = ctx.createLinearGradient(0, 0, width, height);
     grad.addColorStop(0, '#fcd34d');
     grad.addColorStop(0.3, '#f59e0b');
@@ -331,7 +623,6 @@ document.addEventListener('DOMContentLoaded', () => {
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, width, height);
 
-    // Decorative foil patterns
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
     for (let i = 0; i < 40; i++) {
       ctx.beginPath();
@@ -375,13 +666,8 @@ document.addEventListener('DOMContentLoaded', () => {
       scratch(x, y);
     });
 
-    window.addEventListener('mouseup', () => {
-      if (isScratching) {
-        isScratching = false;
-      }
-    });
+    window.addEventListener('mouseup', () => { isScratching = false; });
 
-    // Touch support
     scratchCanvas.addEventListener('touchstart', (e) => {
       isScratching = true;
       const { x, y } = getCoords(e);
@@ -394,9 +680,7 @@ document.addEventListener('DOMContentLoaded', () => {
       scratch(x, y);
     }, { passive: true });
 
-    scratchCanvas.addEventListener('touchend', () => {
-      isScratching = false;
-    });
+    scratchCanvas.addEventListener('touchend', () => { isScratching = false; });
   }
 
   initScratchCard();
@@ -409,67 +693,6 @@ document.addEventListener('DOMContentLoaded', () => {
     triggerCelebratoryConfetti(window.innerWidth / 2, window.innerHeight / 2, 45);
   });
 
-  // Mystery Gift Boxes
-  giftBoxes.forEach(box => {
-    box.addEventListener('click', () => {
-      if (!box.classList.contains('unwrapped')) {
-        box.classList.add('unwrapped');
-        window.audioEngine.playUnwrapSound();
-        const modal = box.querySelector('.gift-revealed-modal');
-        if (modal) modal.classList.remove('hidden');
-        const hint = box.querySelector('.box-tap-hint');
-        if (hint) hint.textContent = '🎉 Unwrapped!';
-        const rect = box.getBoundingClientRect();
-        spawnMiniHearts(rect.left + rect.width / 2, rect.top + rect.height / 2, 12);
-      }
-    });
-  });
-
-  /* ===================================================================
-     8. SECTION 5: BALLOON GARDEN OF AFFECTION (POP TO REVEAL)
-     =================================================================== */
-  balloons.forEach(balloon => {
-    balloon.addEventListener('click', () => {
-      if (balloon.classList.contains('popped')) return;
-
-      const reasonId = parseInt(balloon.getAttribute('data-reason'), 10);
-      balloon.classList.add('popped');
-      poppedBalloonsCount++;
-      poppedCountEl.textContent = poppedBalloonsCount;
-
-      // SFX
-      window.audioEngine.playBalloonPopSound();
-
-      // Confetti burst from balloon position
-      const rect = balloon.getBoundingClientRect();
-      triggerCelebratoryConfetti(rect.left + rect.width / 2, rect.top + rect.height / 2, 25);
-
-      // Add reason card
-      if (reasonsEmptyNotice) reasonsEmptyNotice.style.display = 'none';
-      const reasonData = sweetReasons.find(r => r.num === reasonId);
-      if (reasonData) {
-        const card = document.createElement('div');
-        card.className = 'reason-card';
-        card.innerHTML = `
-          <span class="reason-num">Reason #${reasonData.num}</span>
-          <p class="reason-quote">“${reasonData.text}”</p>
-        `;
-        reasonsList.appendChild(card);
-      }
-
-      // If all popped
-      if (poppedBalloonsCount === 6) {
-        setTimeout(() => {
-          triggerCelebratoryConfetti(window.innerWidth / 2, window.innerHeight / 2, 100);
-          window.audioEngine.playSparkleSound();
-        }, 500);
-      }
-    });
-  });
-
-  /* ===================================================================
-     9. SECTION 6: FINALE & HUG COUNTER
-     =================================================================== */
   btnFireworks.addEventListener('click', () => {
     window.audioEngine.playSparkleSound();
     for (let i = 0; i < 5; i++) {
@@ -492,81 +715,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     window.audioEngine.playHugSound();
 
-    // Spawn heart explosion
     const rect = btnSendHug.getBoundingClientRect();
     spawnMiniHearts(rect.left + rect.width / 2, rect.top + rect.height / 2, 16);
   });
 
-  /* ===================================================================
-     10. SETTINGS & PERSONALIZATION MODAL
-     =================================================================== */
-  function openSettings() {
-    settingsModal.classList.remove('hidden');
-  }
 
-  function closeSettings() {
-    settingsModal.classList.add('hidden');
-  }
-
-  btnSettingsOpen.addEventListener('click', openSettings);
-  btnCloseSettings.addEventListener('click', closeSettings);
-
-  // Load saved personalization
-  function loadSavedCustomization() {
-    const savedName = localStorage.getItem('birthday_recipient_name');
-    const savedSender = localStorage.getItem('birthday_sender_name');
-    const savedHero = localStorage.getItem('birthday_hero_text');
-    const savedLetter = localStorage.getItem('birthday_letter_text');
-
-    if (savedName) {
-      document.querySelectorAll('.recipient-name-display').forEach(el => el.textContent = savedName);
-      if (inputRecipient) inputRecipient.value = savedName;
-    }
-    if (savedSender) {
-      document.querySelectorAll('.author-signature-display').forEach(el => el.textContent = savedSender);
-      if (inputSender) inputSender.value = savedSender;
-    }
-    if (savedHero) {
-      const heroEl = document.getElementById('hero-custom-message');
-      if (heroEl) heroEl.textContent = savedHero;
-      if (inputHeroText) inputHeroText.value = savedHero;
-    }
-    if (savedLetter) {
-      const letterEl = document.getElementById('envelope-custom-letter');
-      if (letterEl) letterEl.textContent = savedLetter;
-      if (inputLetterText) inputLetterText.value = savedLetter;
-    }
-  }
-
-  loadSavedCustomization();
-
-  btnSaveSettings.addEventListener('click', () => {
-    const newName = inputRecipient.value.trim() || 'My Beloved One';
-    const newSender = inputSender.value.trim() || 'Your Forever Person ♡';
-    const newHero = inputHeroText.value.trim();
-    const newLetter = inputLetterText.value.trim();
-
-    localStorage.setItem('birthday_recipient_name', newName);
-    localStorage.setItem('birthday_sender_name', newSender);
-    if (newHero) localStorage.setItem('birthday_hero_text', newHero);
-    if (newLetter) localStorage.setItem('birthday_letter_text', newLetter);
-
-    loadSavedCustomization();
-    closeSettings();
-    window.audioEngine.playSparkleSound();
-  });
-
-  btnResetSettings.addEventListener('click', () => {
-    localStorage.removeItem('birthday_recipient_name');
-    localStorage.removeItem('birthday_sender_name');
-    localStorage.removeItem('birthday_hero_text');
-    localStorage.removeItem('birthday_letter_text');
-    location.reload();
-  });
-
-  /* ===================================================================
-     11. AMBIENT PARTICLES CANVAS (GENTLE FLOATING HEARTS & SPARKLES)
-     =================================================================== */
   function initAmbientCanvas() {
     if (!ambientCanvas) return;
     const ctx = ambientCanvas.getContext('2d');
@@ -619,15 +772,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initAmbientCanvas();
 
-  /* ===================================================================
-     12. CURSOR TRAIL SPARKLES
-     =================================================================== */
   const trailContainer = document.getElementById('cursor-trail-container');
   let lastTrailTime = 0;
 
   window.addEventListener('mousemove', (e) => {
     const now = Date.now();
-    if (now - lastTrailTime < 45) return; // Throttled for performance
+    if (now - lastTrailTime < 45) return;
     lastTrailTime = now;
 
     if (!trailContainer) return;
@@ -641,9 +791,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => heart.remove(), 1000);
   });
 
-  /* ===================================================================
-     13. MINI HEARTS SPRAY HELPER
-     =================================================================== */
   function spawnMiniHearts(x, y, count = 10) {
     if (!trailContainer) return;
     for (let i = 0; i < count; i++) {
@@ -659,74 +806,224 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  /* ===================================================================
-     14. CELEBRATORY CONFETTI / FIREWORKS ENGINE
-     =================================================================== */
-  const confettiParticles = [];
+  const MAX_TOTAL_PARTICLES = 120;
+  const MAX_RAIN_PARTICLES = 50;
+  const MAX_ROCKETS = 3;
+  const BURST_MIN = 15;
+  const BURST_RANGE = 15;
 
-  function triggerCelebratoryConfetti(originX, originY, count = 50) {
+  const confettiParticles = [];
+  const fireworksRockets = [];
+  let celebrationEndTime = 0;
+  let lastRocketTime = 0;
+  let toastEl = null;
+  let rafId = null;
+  let ctx = null;
+
+
+  function showCelebrationToast(remainingSeconds) {
+    if (!toastEl) {
+      toastEl = document.createElement('div');
+      toastEl.className = 'celebration-toast';
+      document.body.appendChild(toastEl);
+    }
+    toastEl.innerHTML = `<span>🎆</span> <span>Grand Celebration Active: <strong>${remainingSeconds}s</strong></span> <span>💖</span>`;
+    toastEl.style.display = 'flex';
+  }
+
+  function hideCelebrationToast() {
+    if (toastEl) toastEl.style.display = 'none';
+  }
+
+  const HEART_SIZE = 32;
+  const heartSprite = (() => {
+    const c = document.createElement('canvas');
+    c.width = c.height = HEART_SIZE;
+    const g = c.getContext('2d');
+    g.font = `${HEART_SIZE * 0.8}px sans-serif`;
+    g.textAlign = 'center';
+    g.textBaseline = 'middle';
+    g.fillText('💖', HEART_SIZE / 2, HEART_SIZE / 2);
+    return c;
+  })();
+
+  function resizeConfettiCanvas() {
     if (!fireworksCanvas) return;
-    const colors = ['#f43f5e', '#fb7185', '#fbbf24', '#f472b6', '#38bdf8', '#c084fc', '#ffffff'];
+    if (fireworksCanvas.width !== window.innerWidth) fireworksCanvas.width = window.innerWidth;
+    if (fireworksCanvas.height !== window.innerHeight) fireworksCanvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeConfettiCanvas);
+  resizeConfettiCanvas();
+
+  function startConfettiLoop() {
+    if (rafId !== null || !fireworksCanvas) return;
+    resizeConfettiCanvas();
+    rafId = requestAnimationFrame(renderConfetti);
+  }
+
+  function startCelebrationMinute(durationMs = 60000) {
+    celebrationEndTime = Math.max(celebrationEndTime, Date.now() + durationMs);
+    triggerCelebratoryBurst(window.innerWidth * 0.5, window.innerHeight * 0.35, 25);
+    triggerCelebratoryBurst(window.innerWidth * 0.25, window.innerHeight * 0.45, 18);
+    triggerCelebratoryBurst(window.innerWidth * 0.75, window.innerHeight * 0.45, 18);
+  }
+
+  function triggerCelebratoryConfetti(originX, originY, count = 30) {
+    startCelebrationMinute(60000);
+    triggerCelebratoryBurst(originX, originY, count);
+  }
+
+  function triggerCelebratoryBurst(originX, originY, count = 30) {
+    if (!fireworksCanvas) return;
+
+    const room = MAX_TOTAL_PARTICLES - confettiParticles.length;
+    if (room <= 0) return;
+    count = Math.min(count, room);
+
+    const colors = [
+      '#f43f5e', '#fb7185', '#fbbf24', '#f59e0b', '#f472b6',
+      '#ec4899', '#38bdf8', '#c084fc', '#ffffff', '#fed7aa'
+    ];
 
     for (let i = 0; i < count; i++) {
       const angle = Math.random() * Math.PI * 2;
-      const speed = Math.random() * 9 + 3;
+      const speed = Math.random() * 8 + 2.5;
       confettiParticles.push({
         x: originX,
         y: originY,
         vx: Math.cos(angle) * speed,
-        vy: Math.sin(angle) * speed - 2,
+        vy: Math.sin(angle) * speed - 1.5,
         size: Math.random() * 8 + 4,
         color: colors[Math.floor(Math.random() * colors.length)],
         rotation: Math.random() * 360,
-        rotationSpeed: (Math.random() - 0.5) * 12,
+        rotationSpeed: (Math.random() - 0.5) * 10,
         opacity: 1,
-        shape: Math.random() > 0.4 ? 'rect' : 'circle'
+        fadeSpeed: Math.random() * 0.008 + 0.005,
+        gravity: 0.12,
+        isHeart: Math.random() > 0.65,
+        wobble: Math.random() * Math.PI,
+        wobbleSpeed: Math.random() * 0.08 + 0.03
       });
     }
+    startConfettiLoop();
+  }
+
+  function spawnRainingConfetti(count = 2) {
+    const room = Math.min(
+      MAX_RAIN_PARTICLES - confettiParticles.length,
+      MAX_TOTAL_PARTICLES - confettiParticles.length
+    );
+    if (room <= 0) return;
+    count = Math.min(count, room);
+
+    const colors = ['#f43f5e', '#fb7185', '#fbbf24', '#f472b6', '#38bdf8', '#c084fc', '#ffffff'];
+    for (let i = 0; i < count; i++) {
+      confettiParticles.push({
+        x: Math.random() * window.innerWidth,
+        y: -15,
+        vx: (Math.random() - 0.5) * 1.5,
+        vy: Math.random() * 2 + 1.2,
+        size: Math.random() * 8 + 4,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        rotation: Math.random() * 360,
+        rotationSpeed: (Math.random() - 0.5) * 6,
+        opacity: Math.random() * 0.3 + 0.7,
+        fadeSpeed: 0.006,
+        gravity: 0.03,
+        isHeart: Math.random() > 0.6,
+        wobble: Math.random() * Math.PI * 2,
+        wobbleSpeed: Math.random() * 0.05 + 0.02
+      });
+    }
+    startConfettiLoop();
+  }
+
+  function launchRocket() {
+    if (!fireworksCanvas || fireworksRockets.length >= MAX_ROCKETS) return;
+
+    const startX = Math.random() * (window.innerWidth - 200) + 100;
+    const targetY = Math.random() * (window.innerHeight * 0.45) + (window.innerHeight * 0.15);
+    const colors = ['#fbbf24', '#f43f5e', '#ec4899', '#38bdf8', '#a855f7', '#ffffff'];
+
+    fireworksRockets.push({
+      x: startX,
+      y: window.innerHeight + 10,
+      targetY,
+      speed: Math.random() * 3 + 8,
+      color: colors[Math.floor(Math.random() * colors.length)]
+    });
+    startConfettiLoop();
   }
 
   function renderConfetti() {
-    if (!fireworksCanvas) return;
-    const ctx = fireworksCanvas.getContext('2d');
-    fireworksCanvas.width = window.innerWidth;
-    fireworksCanvas.height = window.innerHeight;
+    if (!fireworksCanvas) { rafId = null; return; }
+    if (!ctx) ctx = fireworksCanvas.getContext('2d');
 
-    ctx.clearRect(0, 0, fireworksCanvas.width, fireworksCanvas.height);
+    const w = fireworksCanvas.width;
+    const h = fireworksCanvas.height;
+    ctx.clearRect(0, 0, w, h);
 
+    for (let r = fireworksRockets.length - 1; r >= 0; r--) {
+      const rocket = fireworksRockets[r];
+      rocket.y -= rocket.speed;
+
+      ctx.beginPath();
+      ctx.arc(rocket.x, rocket.y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = rocket.color;
+      ctx.fill();
+
+      if (rocket.y <= rocket.targetY) {
+        triggerCelebratoryBurst(
+          rocket.x,
+          rocket.y,
+          Math.floor(Math.random() * BURST_RANGE + BURST_MIN)
+        );
+        window.audioEngine?.playSparkleSound?.();
+        fireworksRockets.splice(r, 1);
+      }
+    }
+
+    ctx.globalAlpha = 1;
     for (let i = confettiParticles.length - 1; i >= 0; i--) {
       const p = confettiParticles[i];
-      p.x += p.vx;
-      p.y += p.vy;
-      p.vy += 0.22; // Gravity
-      p.vx *= 0.98; // Air friction
-      p.rotation += p.rotationSpeed;
-      p.opacity -= 0.012;
 
-      if (p.opacity <= 0 || p.y > fireworksCanvas.height + 20) {
-        confettiParticles.splice(i, 1);
+      p.wobble += p.wobbleSpeed;
+      p.x += p.vx + Math.sin(p.wobble) * 1.2;
+      p.y += p.vy;
+      p.vy += p.gravity;
+      p.vx *= 0.985;
+      p.rotation += p.rotationSpeed;
+      p.opacity -= p.fadeSpeed;
+
+      if (p.opacity <= 0 || p.y > h + 30) {
+        confettiParticles[i] = confettiParticles[confettiParticles.length - 1];
+        confettiParticles.pop();
         continue;
       }
 
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate((p.rotation * Math.PI) / 180);
+      const rad = (p.rotation * Math.PI) / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+      const sx = p.isHeart ? 1 : Math.cos(p.wobble);
+      ctx.setTransform(cos * sx, sin * sx, -sin, cos, p.x, p.y);
       ctx.globalAlpha = p.opacity;
-      ctx.fillStyle = p.color;
 
-      if (p.shape === 'rect') {
-        ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+      if (p.isHeart) {
+        const s = p.size * 1.5;
+        ctx.drawImage(heartSprite, -s / 2, -s / 2, s, s);
       } else {
-        ctx.beginPath();
-        ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
       }
-
-      ctx.restore();
     }
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
 
-    requestAnimationFrame(renderConfetti);
+    if (confettiParticles.length === 0 && fireworksRockets.length === 0) {
+      ctx.clearRect(0, 0, w, h);
+      rafId = null;
+      return;
+    }
+    rafId = requestAnimationFrame(renderConfetti);
   }
-
-  renderConfetti();
 });

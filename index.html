@@ -1,18 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Happy Birthday, My Beloved! 💖✨</title>
-  <meta name="description" content="A romantic and heartfelt interactive birthday journey with music, secret reveals, and sweet surprises.">
+  <meta name="description"
+    content="A romantic and heartfelt interactive birthday journey with music, secret reveals, and sweet surprises.">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Dancing+Script:wght@600;700&family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Dancing+Script:wght@600;700&family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap"
+    rel="stylesheet">
 
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <!-- Ambient Hearts & Sparkle Particle Canvas -->
   <canvas id="ambient-canvas"></canvas>
@@ -53,8 +58,10 @@
     <a href="#memories" class="nav-dot" data-title="Memories" aria-label="Go to Memories section"><span></span></a>
     <a href="#cake" class="nav-dot" data-title="Make a Wish" aria-label="Go to Birthday Cake section"><span></span></a>
     <a href="#vault" class="nav-dot" data-title="Secret Gifts" aria-label="Go to Love Vault section"><span></span></a>
-    <a href="#balloons" class="nav-dot" data-title="Pop Wishes" aria-label="Go to Balloon Garden section"><span></span></a>
-    <a href="#finale" class="nav-dot" data-title="Forever Note" aria-label="Go to Grand Finale section"><span></span></a>
+    <a href="#balloons" class="nav-dot" data-title="Pop Wishes"
+      aria-label="Go to Balloon Garden section"><span></span></a>
+    <a href="#finale" class="nav-dot" data-title="Forever Note"
+      aria-label="Go to Grand Finale section"><span></span></a>
   </nav>
 
   <!-- ENTRY / UNLOCK OVERLAY (Enables AudioContext cleanly) -->
@@ -78,7 +85,7 @@
 
   <!-- MAIN SCROLLABLE CONTENT -->
   <main id="main-content">
-    
+
     <!-- ================= SECTION 1: HERO & WELCOME ================= -->
     <section id="hero" class="section-wrapper hero-section" data-theme="hero" data-track="0">
       <div class="floating-decorations">
@@ -109,7 +116,8 @@
         </div>
 
         <p class="hero-paragraph lead-text" id="hero-custom-message">
-          On this beautiful day, the world became brighter, softer, and infinitely more magical because you were born. Here is a little world created with all my love, just for you.
+          On this beautiful day, the world became brighter, softer, and infinitely more magical because you were born.
+          Here is a little world created with all my love, just for you.
         </p>
 
         <!-- Interactive Tap-to-Pop Bubbles -->
@@ -159,7 +167,8 @@
         <div class="section-header">
           <span class="section-kicker">✦ Sweetest Chapters ✦</span>
           <h2 class="section-title">Polaroid Memory Lane</h2>
-          <p class="section-subtitle">Click each polaroid to flip and reveal the secret note hidden behind every memory!</p>
+          <p class="section-subtitle">Click each polaroid to flip and reveal the secret note hidden behind every memory!
+          </p>
         </div>
 
         <div class="polaroid-grid" id="polaroids-grid">
@@ -169,107 +178,121 @@
               <div class="card-front">
                 <div class="tape-strip"></div>
                 <div class="photo-frame">
-                  <div class="photo-art photo-art-1">
+                  <img src="assets/images/photo1.jpg" alt="Gorgeous hooman" class="photo-img"
+                    onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                  <div class="photo-art photo-art-1" style="display:none;">
                     <span class="photo-emoji">☕</span>
                     <span class="photo-subtext">First Spark</span>
                   </div>
                 </div>
                 <div class="polaroid-caption">
-                  <h3>The Spark</h3>
+                  <h3>Gorgeous hooman</h3>
                   <span class="flip-hint">↺ Tap to flip</span>
                 </div>
               </div>
               <div class="card-back">
                 <div class="back-heart">💌</div>
-                <h4 class="back-title">When Destiny Smiled</h4>
-                <p class="back-text">From the first conversation, I knew you were someone extraordinarily rare. Every laugh we shared became a favorite memory of mine.</p>
-                <span class="memory-date">A Day to Remember ✨</span>
+                <h4 class="back-title">Adolable fren</h4>
+                <p class="back-text">Loveliest and pwettiest feline of dem all, you da bestest human to ever walk da
+                  planet. Shooo lubly shoo pwetty and shooo gorgeous. I lub you so much, my precious Dia pipu.</p>
+                <span class="memory-date">Forever & Always 💖</span>
               </div>
             </div>
           </div>
 
           <!-- Card 2 -->
-          <div class="polaroid-card" tabindex="0" role="button" aria-label="Flip polaroid: Unstoppable Laughter">
+          <div class="polaroid-card" tabindex="0" role="button" aria-label="Flip polaroid: Floof ball">
             <div class="card-inner">
               <div class="card-front">
                 <div class="tape-strip"></div>
                 <div class="photo-frame">
-                  <div class="photo-art photo-art-2">
+                  <img src="assets/images/photo2.jpg" alt="Floof ball" class="photo-img"
+                    onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                  <div class="photo-art photo-art-2" style="display:none;">
                     <span class="photo-emoji">✨</span>
                     <span class="photo-subtext">Golden Hours</span>
                   </div>
                 </div>
                 <div class="polaroid-caption">
-                  <h3>Pure Joy</h3>
+                  <h3>Floof ball</h3>
                   <span class="flip-hint">↺ Tap to flip</span>
                 </div>
               </div>
               <div class="card-back">
                 <div class="back-heart">🌸</div>
-                <h4 class="back-title">Laughter That Heals</h4>
-                <p class="back-text">The times we laughed until our stomachs hurt and tears ran down our cheeks. You bring so much authentic sunshine into my life.</p>
+                <h4 class="back-title">Fur-Ever Friends</h4>
+                <p class="back-text">Dia pipu is da most lubly hooman ever, floofy floofy, pwetty pwetty, tiny kitty.
+                  Super adorable and lovable goof ball.</p>
                 <span class="memory-date">Endless Giggles 💫</span>
               </div>
             </div>
           </div>
 
           <!-- Card 3 -->
-          <div class="polaroid-card" tabindex="0" role="button" aria-label="Flip polaroid: Late Night Talks">
+          <div class="polaroid-card" tabindex="0" role="button" aria-label="Flip polaroid: My Apolocheese">
             <div class="card-inner">
               <div class="card-front">
                 <div class="tape-strip"></div>
                 <div class="photo-frame">
-                  <div class="photo-art photo-art-3">
+                  <img src="assets/images/photo3.jpg" alt="My Apolocheese" class="photo-img"
+                    onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                  <div class="photo-art photo-art-3" style="display:none;">
                     <span class="photo-emoji">🌙</span>
                     <span class="photo-subtext">2:00 AM Convos</span>
                   </div>
                 </div>
                 <div class="polaroid-caption">
-                  <h3>Heart to Heart</h3>
+                  <h3>My Apolocheese</h3>
                   <span class="flip-hint">↺ Tap to flip</span>
                 </div>
               </div>
               <div class="card-back">
                 <div class="back-heart">🌌</div>
-                <h4 class="back-title">Under The Moon</h4>
-                <p class="back-text">Sharing dreams, fears, and silly thoughts when the rest of the world was asleep. You're my safest place to be completely myself.</p>
-                <span class="memory-date">Deepest Connections 🌙</span>
+                <h4 class="back-title">I'm solly for making you mad and upsetting you</h4>
+                <p class="back-text">I'm so sorry for making you upset, Dia pipu. You mean a lot to me, I never wanted
+                  to hurt you. I'm solly.</p>
+                <span class="memory-date">I say solly 🌙</span>
               </div>
             </div>
           </div>
 
           <!-- Card 4 -->
-          <div class="polaroid-card" tabindex="0" role="button" aria-label="Flip polaroid: Adventures Together">
+          <div class="polaroid-card" tabindex="0" role="button" aria-label="Flip polaroid: Wish you da best">
             <div class="card-inner">
               <div class="card-front">
                 <div class="tape-strip"></div>
                 <div class="photo-frame">
-                  <div class="photo-art photo-art-4">
+                  <img src="assets/images/photo4.jpg" alt="Wish you da best" class="photo-img"
+                    onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                  <div class="photo-art photo-art-4" style="display:none;">
                     <span class="photo-emoji">🚗</span>
                     <span class="photo-subtext">Wanderlust</span>
                   </div>
                 </div>
                 <div class="polaroid-caption">
-                  <h3>Adventures</h3>
+                  <h3>Wish you da best</h3>
                   <span class="flip-hint">↺ Tap to flip</span>
                 </div>
               </div>
               <div class="card-back">
                 <div class="back-heart">✈️</div>
-                <h4 class="back-title">Every Journey With You</h4>
-                <p class="back-text">Whether we're exploring new places or just wandering the streets, every single mile feels like an unforgettable movie with you.</p>
+                <h4 class="back-title">Lots of success and prosperity</h4>
+                <p class="back-text">I hope you get the job you've been working so hard for, I wish you all the success
+                  and prosperity in the world, you are so smart, I'm sure you'll make it.</p>
                 <span class="memory-date">To Everywhere & Beyond 🗺️</span>
               </div>
             </div>
           </div>
 
           <!-- Card 5 -->
-          <div class="polaroid-card" tabindex="0" role="button" aria-label="Flip polaroid: Little Things">
+          <div class="polaroid-card" tabindex="0" role="button" aria-label="Flip polaroid: The Little Things">
             <div class="card-inner">
               <div class="card-front">
                 <div class="tape-strip"></div>
                 <div class="photo-frame">
-                  <div class="photo-art photo-art-5">
+                  <img src="assets/images/photo5.jpg" alt="The Little Things" class="photo-img"
+                    onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                  <div class="photo-art photo-art-5" style="display:none;">
                     <span class="photo-emoji">🌷</span>
                     <span class="photo-subtext">Gentle Moments</span>
                   </div>
@@ -281,20 +304,23 @@
               </div>
               <div class="card-back">
                 <div class="back-heart">🧸</div>
-                <h4 class="back-title">Thoughtful Grace</h4>
-                <p class="back-text">The way you listen, the kindness in your eyes, and how you care so deeply for those around you. You are truly pure gold.</p>
+                <h4 class="back-title">So pure and loverly, you are...</h4>
+                <p class="back-text">You are super lovely and pure Dia pipu, please take good care of yourself and stay
+                  away from terrible losers and bad people. Your health and peace of mind comes above all.</p>
                 <span class="memory-date">Forever Cherished 💐</span>
               </div>
             </div>
           </div>
 
           <!-- Card 6 -->
-          <div class="polaroid-card" tabindex="0" role="button" aria-label="Flip polaroid: Today & Tomorrow">
+          <div class="polaroid-card" tabindex="0" role="button" aria-label="Flip polaroid: Today & Forever">
             <div class="card-inner">
               <div class="card-front">
                 <div class="tape-strip"></div>
                 <div class="photo-frame">
-                  <div class="photo-art photo-art-6">
+                  <img src="assets/images/photo6.jpg" alt="Today & Forever" class="photo-img"
+                    onerror="this.style.display='none'; if(this.nextElementSibling) this.nextElementSibling.style.display='flex';">
+                  <div class="photo-art photo-art-6" style="display:none;">
                     <span class="photo-emoji">👑</span>
                     <span class="photo-subtext">The Birthday Star</span>
                   </div>
@@ -307,7 +333,8 @@
               <div class="card-back">
                 <div class="back-heart">💖</div>
                 <h4 class="back-title">My Lifelong Wish</h4>
-                <p class="back-text">May all your dreams take flight this year. May peace, boundless love, and triumphant smiles follow you everywhere you go.</p>
+                <p class="back-text">May all your dreams take flight this year. May peace, boundless love, and
+                  triumphant smiles follow you everywhere you go.</p>
                 <span class="memory-date">Happy Birthday Darling! 🥂</span>
               </div>
             </div>
@@ -316,7 +343,8 @@
 
         <!-- Custom Photo Add Button -->
         <div class="memory-footer-action">
-          <p class="memory-tip">💡 Tip: You can customize names, letters, and memories anytime using the ⚙️ gear icon in the top right!</p>
+          <p class="memory-tip">💡 Tip: You can customize names, letters, and memories anytime using the ⚙️ gear icon in
+            the top right!</p>
         </div>
       </div>
     </section>
@@ -327,7 +355,8 @@
         <div class="section-header">
           <span class="section-kicker">✦ Sweetest Tradition ✦</span>
           <h2 class="section-title">Make a Birthday Wish</h2>
-          <p class="section-subtitle">Click the candles to blow them out or press the magic button below to make your wish come true!</p>
+          <p class="section-subtitle">Click the candles to blow them out or press the magic button below to make your
+            wish come true!</p>
         </div>
 
         <div class="cake-stage">
@@ -409,7 +438,8 @@
             <div class="wish-reveal-heart">🌟 🎂 🌟</div>
             <h3 class="wish-title">A Million Blessings Upon You!</h3>
             <p class="wish-body">
-              Your candles have been blown, your wish is carried up to the stars! May this year shower you with unbreakable health, dazzling joy, unconditional love, and every dream you whisper in secret!
+              Your candles have been blown, your wish is carried up to the stars! May this year shower you with
+              unbreakable health, dazzling joy, unconditional love, and every dream you whisper in secret!
             </p>
             <div class="slice-card" id="cake-slice-note">
               <span>🍰 <i>"A sweet slice of happiness for the sweetest person alive."</i></span>
@@ -425,7 +455,8 @@
         <div class="section-header">
           <span class="section-kicker">✦ Click To Reveal Surprises ✦</span>
           <h2 class="section-title">The Secret Love Vault</h2>
-          <p class="section-subtitle">Unlock intimate letters, scratch off mystery tickets, and unwrap your birthday gift boxes!</p>
+          <p class="section-subtitle">Unlock intimate letters, scratch off mystery tickets, and unwrap your birthday
+            gift boxes!</p>
         </div>
 
         <div class="vault-grid">
@@ -433,16 +464,21 @@
           <div class="vault-column">
             <div class="vault-card-wrapper">
               <span class="vault-tag">Secret Letter</span>
-              <div class="letter-envelope" id="envelope-interactive" role="button" tabindex="0" aria-label="Open wax seal love letter">
+              <div class="letter-envelope" id="envelope-interactive" role="button" tabindex="0"
+                aria-label="Open wax seal love letter">
                 <div class="envelope-back"></div>
                 <div class="envelope-paper" id="envelope-paper">
                   <div class="paper-header">
                     <span class="paper-stamp">🌸</span>
                     <span class="paper-date">For My Best Friend</span>
+                    <button type="button" class="btn-fold-letter" id="btn-fold-letter"
+                      style="background:rgba(244,63,94,0.12); color:#e11d48; border:1px solid rgba(244,63,94,0.25); border-radius:12px; font-size:0.75rem; padding:3px 8px; cursor:pointer;">✕
+                      Fold</button>
                   </div>
                   <h4 class="paper-title">From the depths of my heart,</h4>
                   <p class="paper-text" id="envelope-custom-letter">
-                    Thank you for being my constant light. You make this heavy world feel lightweight and colorful. I promise to be right beside you celebrating every milestone of your life.
+                    Thank you for being my constant light. You make this heavy world feel lightweight and colorful. I
+                    promise to be right beside you celebrating every milestone of your life.
                   </p>
                   <div class="paper-sign">With all my love & devotion ♡</div>
                 </div>
@@ -466,7 +502,8 @@
                 <div class="scratch-secret-content">
                   <span class="scratch-icon">🎟️</span>
                   <h4 class="scratch-title">VIP Bestie Coupon:</h4>
-                  <p class="scratch-coupon-desc">Unlimited Hugs, Late-Night Food Runs, & Lifelong Support Whenever You Need It!</p>
+                  <p class="scratch-coupon-desc">Unlimited Hugs, Late-Night Food Runs, & Lifelong Support Whenever You
+                    Need It!</p>
                   <span class="scratch-code">CODE: BESTIE-FOR-LIFE-2026 💖</span>
                 </div>
                 <!-- Scratch canvas layer -->
@@ -484,7 +521,7 @@
         <div class="gift-boxes-section">
           <h3 class="gift-boxes-title">Choose A Gift Box To Unwrap 🎁</h3>
           <div class="gift-boxes-grid">
-            
+
             <!-- Box 1 -->
             <div class="gift-box-item" data-box="1" role="button" tabindex="0" aria-label="Unwrap Gift Box 1">
               <div class="gift-box-3d">
@@ -630,7 +667,8 @@
         <div class="section-header">
           <span class="section-kicker">✦ An Eternal Wish ✦</span>
           <h2 class="section-title script-font finale-grand-title">Happy Birthday, Forever & Always</h2>
-          <p class="section-subtitle">No matter how many miles, years, or seasons pass, you will always have my whole heart.</p>
+          <p class="section-subtitle">No matter how many miles, years, or seasons pass, you will always have my whole
+            heart.</p>
         </div>
 
         <div class="grand-letter-parchment">
@@ -639,16 +677,20 @@
               <span class="parchment-icon">✨ 💌 ✨</span>
               <h3 class="parchment-title script-font">To the One Who Holds My Dearest Regard,</h3>
             </div>
-            
+
             <div class="parchment-content" id="finale-letter-body">
               <p>
-                As this special day unfolds, I hope you pause to see yourself the way I see you: brave, gentle, brilliantly funny, breathtakingly kind, and utterly irreplaceable.
+                As this special day unfolds, I hope you pause to see yourself the way I see you: brave, gentle,
+                brilliantly funny, breathtakingly kind, and utterly irreplaceable.
               </p>
               <p>
-                Life can get busy and the world can be noisy, but knowing you exist in my life makes everything feel softer and filled with purpose. Every smile you offer is a reminder of how good this life can be.
+                Life can get busy and the world can be noisy, but knowing you exist in my life makes everything feel
+                softer and filled with purpose. Every smile you offer is a reminder of how good this life can be.
               </p>
               <p>
-                May this new year of your life bring dreams realized before you even finish praying for them, tears that only come from immense joy, quiet sunsets that comfort your heart, and boundless love wrapping you every single hour.
+                May this new year of your life bring dreams realized before you even finish praying for them, tears that
+                only come from immense joy, quiet sunsets that comfort your heart, and boundless love wrapping you every
+                single hour.
               </p>
             </div>
 
@@ -687,23 +729,27 @@
   </main>
 
   <!-- ================= POPUP MODAL: CUSTOMIZATION & AUDIO SETTINGS ================= -->
-  <div id="settings-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="modal-settings-title">
+  <div id="settings-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true"
+    aria-labelledby="modal-settings-title">
     <div class="modal-card">
       <div class="modal-header">
         <h3 id="modal-settings-title">✨ Personalize Birthday Surprise</h3>
         <button id="btn-close-settings" class="modal-close-btn" aria-label="Close settings">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="modal-desc">Customize the name, heartfelt messages, and audio for your beloved friend. Changes take effect instantly!</p>
-        
+        <p class="modal-desc">Customize the name, heartfelt messages, and audio for your beloved friend. Changes take
+          effect instantly!</p>
+
         <div class="form-group">
           <label for="input-recipient-name">Recipient's Name / Pet Name:</label>
-          <input type="text" id="input-recipient-name" value="My Beloved Bestie" placeholder="e.g. Elena, Honey, Sweetheart, Alex...">
+          <input type="text" id="input-recipient-name" value="My Beloved Bestie"
+            placeholder="e.g. Elena, Honey, Sweetheart, Alex...">
         </div>
 
         <div class="form-group">
           <label for="input-sender-name">Your Signature / Name:</label>
-          <input type="text" id="input-sender-name" value="Your Forever Person ♡" placeholder="e.g. Always Yours, Max...">
+          <input type="text" id="input-sender-name" value="Your Forever Person ♡"
+            placeholder="e.g. Always Yours, Max...">
         </div>
 
         <div class="form-group">
@@ -729,7 +775,8 @@
             <input type="radio" name="audioMode" value="procedural" checked id="radio-audio-synth">
             <span class="radio-content">
               <strong>✨ Procedural Melodies (Included)</strong>
-              <small>Dynamic romantic chiptune/music-box tracks tailored per section (works offline, zero setup!)</small>
+              <small>Dynamic romantic chiptune/music-box tracks tailored per section (works offline, zero
+                setup!)</small>
             </span>
           </label>
           <label class="radio-card">
@@ -757,7 +804,9 @@
   <!-- Big Interactive Confetti / Fireworks Canvas -->
   <canvas id="fireworks-canvas"></canvas>
 
+  <script src="assets/config.js"></script>
   <script src="audio.js"></script>
   <script src="script.js"></script>
 </body>
+
 </html>

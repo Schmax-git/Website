@@ -1,8 +1,9 @@
 /**
  * SWEET BIRTHDAY AUDIO ENGINE
- * - Section-based background music synthesis with smooth cross-fading
+ * - Section-based background music synthesis OR custom MP3 tracks
+ * - Reliable pre-unlocked audio element preventing browser autoplay blocks
+ * - Smooth section-by-section audio cross-fading on scroll
  * - Interactive action SFX (chimes, pops, unwraps, candle blows, sparkles)
- * - User custom audio upload/file support
  */
 
 class BirthdayAudioEngine {
@@ -15,9 +16,11 @@ class BirthdayAudioEngine {
     this.isPlaying = false;
     this.volume = 0.8;
     this.currentTrackIndex = -1;
-    this.customAudioElement = null;
+    this.currentCustomPath = null;
     this.isCustomAudioMode = false;
-    this.customAudioSource = null;
+    this.customTracksMap = null;
+    this.customAudioElement = null;
+    this.fadeInterval = null;
     this.activeNodes = [];
     this.schedulerTimer = null;
 
@@ -26,8 +29,8 @@ class BirthdayAudioEngine {
       {
         id: 'hero',
         name: 'Sweet Music Box Lullaby',
-        label: 'Section 1 • Entrance Melody',
-        scale: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25], // C major pentatonic
+        label: 'Section 1 • Welcome',
+        scale: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25],
         bpm: 76,
         type: 'musicbox'
       },
@@ -35,7 +38,7 @@ class BirthdayAudioEngine {
         id: 'memories',
         name: 'Nostalgic Rhodes & Warm Chords',
         label: 'Section 2 • Memory Lane',
-        scale: [220.00, 261.63, 293.66, 329.63, 392.00, 440.00, 523.25], // A minor / C
+        scale: [220.00, 261.63, 293.66, 329.63, 392.00, 440.00, 523.25],
         bpm: 68,
         type: 'rhodes'
       },
@@ -43,7 +46,7 @@ class BirthdayAudioEngine {
         id: 'cake',
         name: 'Joyful Birthday Melody',
         label: 'Section 3 • Make a Wish',
-        scale: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25], // Happy birthday scale
+        scale: [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25],
         bpm: 96,
         type: 'celebration'
       },
@@ -51,7 +54,7 @@ class BirthdayAudioEngine {
         id: 'vault',
         name: 'Intimate Heartstrings',
         label: 'Section 4 • Love Vault',
-        scale: [196.00, 246.94, 293.66, 329.63, 392.00, 493.88, 587.33], // G major romantic
+        scale: [196.00, 246.94, 293.66, 329.63, 392.00, 493.88, 587.33],
         bpm: 62,
         type: 'strings'
       },
@@ -59,7 +62,7 @@ class BirthdayAudioEngine {
         id: 'balloons',
         name: 'Playful Starlight Plucks',
         label: 'Section 5 • Balloon Garden',
-        scale: [293.66, 329.63, 369.99, 440.00, 493.88, 587.33, 659.25], // D major bright
+        scale: [293.66, 329.63, 369.99, 440.00, 493.88, 587.33, 659.25],
         bpm: 104,
         type: 'plucks'
       },
@@ -67,15 +70,36 @@ class BirthdayAudioEngine {
         id: 'finale',
         name: 'Cosmic Serenade & Celebration',
         label: 'Section 6 • Grand Finale',
-        scale: [261.63, 329.63, 392.00, 493.88, 523.25, 659.25, 783.99], // Cmaj7/9 cosmic
+        scale: [261.63, 329.63, 392.00, 493.88, 523.25, 659.25, 783.99],
         bpm: 82,
         type: 'cosmic'
       }
     ];
+
+    this.initFromConfig();
   }
 
-  // Initialize Web Audio Context after user gesture
+  initFromConfig() {
+    const config = window.SURPRISE_CONFIG;
+    if (config && config.audio) {
+      if (typeof config.audio.defaultVolume === 'number') {
+        this.volume = config.audio.defaultVolume;
+      }
+      if (config.audio.useCustomMp3Files) {
+        this.isCustomAudioMode = true;
+        this.customTracksMap = config.audio.customTracks || {};
+      }
+    }
+  }
+
+  // Initialize Web Audio Context and pre-unlock HTML5 Audio on user click
   init() {
+    if (!this.customAudioElement) {
+      this.customAudioElement = new Audio();
+      this.customAudioElement.loop = true;
+      this.customAudioElement.volume = this.isMuted ? 0 : this.volume;
+    }
+
     if (this.ctx) return;
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     this.ctx = new AudioContextClass();
@@ -117,42 +141,124 @@ class BirthdayAudioEngine {
     return this.isMuted;
   }
 
-  // Switch Track for a Section with smooth crossfade
+  // Switch Track when user scrolls into a new Section
   switchSectionTrack(sectionIndex) {
-    if (sectionIndex === this.currentTrackIndex && this.isPlaying) return;
     if (sectionIndex < 0 || sectionIndex >= this.tracks.length) return;
+    
+    // If already playing this section, don't restart it
+    if (sectionIndex === this.currentTrackIndex && this.isPlaying) {
+      return;
+    }
 
     this.currentTrackIndex = sectionIndex;
     const track = this.tracks[sectionIndex];
+    const trackId = track.id;
 
-    // Update UI labels if available
+    // Update UI labels
     const labelEl = document.getElementById('current-section-label');
     const nameEl = document.getElementById('current-track-name');
     if (labelEl) labelEl.textContent = track.label;
-    if (nameEl) nameEl.textContent = track.name;
 
-    if (!this.isPlaying) return;
+    // If Custom Audio MP3 mode is enabled
+    if (this.isCustomAudioMode && this.customTracksMap) {
+      const customPath = this.customTracksMap[trackId];
+      if (customPath) {
+        const cleanName = customPath.split('/').pop().replace(/\.[^/.]+$/, '');
+        if (nameEl) nameEl.textContent = `🎵 ${cleanName}.mp3`;
 
-    if (this.isCustomAudioMode) {
-      return; // In custom audio mode, user track continues
+        if (this.isPlaying) {
+          this.playCustomSectionFile(customPath, track);
+        }
+        return;
+      }
     }
 
-    // Smoothly stop existing synthesized sequence and start new one
+    if (nameEl) nameEl.textContent = track.name;
+    if (!this.isPlaying) return;
+
+    // Procedural Synth mode
+    if (this.customAudioElement) {
+      this.customAudioElement.pause();
+    }
     this.stopSynthesizer();
     this.startSynthesizerTrack(track);
+  }
+
+  // Plays section MP3 with smooth volume transition and no audio clipping
+  playCustomSectionFile(filePath, fallbackTrack) {
+    this.stopSynthesizer();
+
+    if (!this.customAudioElement) {
+      this.init();
+    }
+
+    const targetVolume = this.isMuted ? 0 : this.volume;
+
+    // If already playing this exact track, just keep going
+    if (this.currentCustomPath === filePath && !this.customAudioElement.paused) {
+      this.customAudioElement.volume = targetVolume;
+      return;
+    }
+
+    this.currentCustomPath = filePath;
+
+    // Clear any existing fade
+    if (this.fadeInterval) {
+      clearInterval(this.fadeInterval);
+      this.fadeInterval = null;
+    }
+
+    // Step 1: Smooth fade out current track
+    let currentVol = this.customAudioElement.volume;
+    this.fadeInterval = setInterval(() => {
+      currentVol = Math.max(0, currentVol - 0.2);
+      this.customAudioElement.volume = currentVol;
+
+      if (currentVol <= 0) {
+        clearInterval(this.fadeInterval);
+        this.fadeInterval = null;
+
+        // Step 2: Switch to new section audio and play
+        this.customAudioElement.src = filePath;
+        this.customAudioElement.currentTime = 0;
+        this.customAudioElement.volume = 0;
+
+        const playPromise = this.customAudioElement.play();
+        if (playPromise !== undefined) {
+          playPromise.then(() => {
+            // Step 3: Smooth fade in to target volume
+            let inVol = 0;
+            this.fadeInterval = setInterval(() => {
+              inVol = Math.min(targetVolume, inVol + 0.15);
+              if (this.customAudioElement) {
+                this.customAudioElement.volume = inVol;
+              }
+              if (inVol >= targetVolume) {
+                clearInterval(this.fadeInterval);
+                this.fadeInterval = null;
+              }
+            }, 50);
+          }).catch(err => {
+            console.warn(`[AudioEngine] Failed to play custom track "${filePath}", falling back to synth:`, err);
+            this.startSynthesizerTrack(fallbackTrack);
+          });
+        }
+      }
+    }, 40);
   }
 
   start() {
     this.init();
     this.resume();
     this.isPlaying = true;
+    this.initFromConfig();
 
-    if (this.isCustomAudioMode && this.customAudioElement) {
-      this.customAudioElement.play().catch(e => console.log('Custom play deferred:', e));
-    } else {
-      if (this.currentTrackIndex < 0) this.currentTrackIndex = 0;
-      this.startSynthesizerTrack(this.tracks[this.currentTrackIndex]);
-    }
+    if (this.currentTrackIndex < 0) this.currentTrackIndex = 0;
+    
+    // Force play first section track
+    const firstSection = this.currentTrackIndex;
+    this.currentTrackIndex = -1; // reset so switchSectionTrack accepts it
+    this.switchSectionTrack(firstSection);
   }
 
   pause() {
@@ -178,7 +284,6 @@ class BirthdayAudioEngine {
       clearInterval(this.schedulerTimer);
       this.schedulerTimer = null;
     }
-    // Fade out active nodes gracefully
     const now = this.ctx ? this.ctx.currentTime : 0;
     this.activeNodes.forEach(node => {
       try {
@@ -193,23 +298,19 @@ class BirthdayAudioEngine {
     this.activeNodes = [];
   }
 
-  // Procedural Music Arranger per Section
+  // Procedural Music Arranger per Section (Fallback)
   startSynthesizerTrack(track) {
     if (!this.ctx || !this.isPlaying) return;
 
     let step = 0;
-    const stepInterval = (60 / track.bpm) * 500; // 8th note interval in ms
+    const stepInterval = (60 / track.bpm) * 500;
 
-    // Procedural sequence patterns depending on section
     const playStep = () => {
-      if (!this.isPlaying || this.isCustomAudioMode) return;
+      if (!this.isPlaying || (this.isCustomAudioMode && this.customAudioElement && !this.customAudioElement.paused)) return;
 
       const scale = track.scale;
-      const t = this.ctx.currentTime;
 
-      // Section specific musical styles
       if (track.type === 'musicbox') {
-        // Melodic sparkle music box
         if (step % 2 === 0) {
           const noteIndex = (step * 3 + Math.floor(step / 4)) % scale.length;
           this.playBellNote(scale[noteIndex], 0.12, 1.2, 'sine');
@@ -218,7 +319,6 @@ class BirthdayAudioEngine {
           this.playBellNote(scale[0] / 2, 0.15, 2.0, 'triangle');
         }
       } else if (track.type === 'rhodes') {
-        // Warm nostalgic Rhodes chords & slow arpeggio
         if (step % 4 === 0) {
           const root = scale[step % scale.length] / 2;
           this.playWarmChord([root, root * 1.25, root * 1.5], 0.1, 2.5);
@@ -228,7 +328,6 @@ class BirthdayAudioEngine {
           this.playBellNote(highNote, 0.08, 0.9, 'sine');
         }
       } else if (track.type === 'celebration') {
-        // Joyful, bouncy birthday waltz/theme
         const chordPattern = [0, 2, 4, 3, 2, 0];
         const note = scale[chordPattern[step % chordPattern.length]];
         this.playBellNote(note, 0.15, 0.8, 'triangle');
@@ -236,7 +335,6 @@ class BirthdayAudioEngine {
           this.playBassNote(scale[0] / 2, 0.18, 0.4);
         }
       } else if (track.type === 'strings') {
-        // Deep intimate romantic pad & gentle piano
         if (step % 8 === 0) {
           const base = scale[(step / 8) % 4] / 2;
           this.playWarmChord([base, base * 1.2, base * 1.5], 0.12, 3.8);
@@ -245,14 +343,12 @@ class BirthdayAudioEngine {
           this.playBellNote(scale[Math.floor(Math.random() * scale.length)], 0.07, 1.6, 'sine');
         }
       } else if (track.type === 'plucks') {
-        // Playful pizzicato / marimba bounce
         const pluckIndex = [0, 4, 2, 5, 1, 3, 6, 2][step % 8];
         this.playPluckNote(scale[pluckIndex], 0.14, 0.4);
         if (step % 4 === 0) {
           this.playBassNote(scale[0] / 2, 0.15, 0.35);
         }
       } else if (track.type === 'cosmic') {
-        // Grand finale cosmic arpeggio & majestic shimmer
         const cosmicIndex = (step * 2) % scale.length;
         this.playBellNote(scale[cosmicIndex] * (step % 4 === 0 ? 1.5 : 1), 0.1, 1.5, 'sine');
         if (step % 8 === 0) {
@@ -263,7 +359,6 @@ class BirthdayAudioEngine {
       step++;
     };
 
-    // Immediate first beat
     playStep();
     this.schedulerTimer = setInterval(playStep, stepInterval);
   }
@@ -364,12 +459,11 @@ class BirthdayAudioEngine {
      INTERACTIVE ACTION SOUND EFFECTS (SFX)
      =================================================================== */
 
-  // Sparkle chime on bubble or card reveal
   playSparkleSound() {
     this.init();
     if (!this.ctx || this.isMuted) return;
 
-    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51]; // C pentatonic high
+    const notes = [523.25, 659.25, 783.99, 1046.50, 1318.51];
     notes.forEach((freq, i) => {
       const delay = i * 0.06;
       setTimeout(() => {
@@ -394,14 +488,12 @@ class BirthdayAudioEngine {
     });
   }
 
-  // Balloon pop sound (punch + burst)
   playBalloonPopSound() {
     this.init();
     if (!this.ctx || this.isMuted) return;
 
     const now = this.ctx.currentTime;
 
-    // 1. Low punch
     const osc = this.ctx.createOscillator();
     const oscGain = this.ctx.createGain();
     osc.type = 'triangle';
@@ -415,7 +507,6 @@ class BirthdayAudioEngine {
     osc.start(now);
     osc.stop(now + 0.16);
 
-    // 2. White noise burst for latex snap
     const bufferSize = this.ctx.sampleRate * 0.08;
     const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
     const output = buffer.getChannelData(0);
@@ -441,11 +532,9 @@ class BirthdayAudioEngine {
     whiteNoise.start(now);
     whiteNoise.stop(now + 0.09);
 
-    // 3. Playful reward chime after pop
     setTimeout(() => this.playSparkleSound(), 80);
   }
 
-  // Candle blow out sound (gentle breath puff + magical chime)
   playCandleBlowSound() {
     this.init();
     if (!this.ctx || this.isMuted) return;
@@ -477,14 +566,12 @@ class BirthdayAudioEngine {
     noise.start(now);
     noise.stop(now + 0.42);
 
-    // Chime
     setTimeout(() => {
       this.playBellNote(880, 0.15, 1.2, 'sine');
       this.playBellNote(1320, 0.12, 1.5, 'triangle');
     }, 200);
   }
 
-  // Flip polaroid card sound
   playCardFlipSound() {
     this.init();
     if (!this.ctx || this.isMuted) return;
@@ -507,7 +594,6 @@ class BirthdayAudioEngine {
     osc.stop(now + 0.2);
   }
 
-  // Unwrap gift box sound
   playUnwrapSound() {
     this.init();
     if (!this.ctx || this.isMuted) return;
@@ -520,7 +606,6 @@ class BirthdayAudioEngine {
     });
   }
 
-  // Hug sent sound (heartfelt warm chord)
   playHugSound() {
     this.init();
     if (!this.ctx || this.isMuted) return;
@@ -528,7 +613,6 @@ class BirthdayAudioEngine {
     this.playSparkleSound();
   }
 
-  // Custom User Audio File Handler
   loadCustomAudio(file) {
     if (!file) return;
     const url = URL.createObjectURL(file);
