@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Happy Birthday Dia! 💖✨</title>
+  <title>Happy Birthday, My Beloved! 💖✨</title>
   <meta name="description"
-    content="A tiny little present from my side">
+    content="A romantic and heartfelt interactive birthday journey with music, secret reveals, and sweet surprises.">
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,9 +44,6 @@
         </button>
         <button id="btn-audio-volume" class="jukebox-btn" title="Toggle Mute" aria-label="Mute toggle">
           <span id="volume-icon">🔊</span>
-        </button>
-        <button id="btn-settings-open" class="jukebox-btn" title="Personalize & Audio Settings" aria-label="Settings">
-          <span>⚙️</span>
         </button>
       </div>
     </div>
@@ -341,11 +338,6 @@
           </div>
         </div>
 
-        <!-- Custom Photo Add Button -->
-        <div class="memory-footer-action">
-          <p class="memory-tip">💡 Tip: You can customize names, letters, and memories anytime using the ⚙️ gear icon in
-            the top right!</p>
-        </div>
       </div>
     </section>
 
@@ -728,78 +720,6 @@
 
   </main>
 
-  <!-- ================= POPUP MODAL: CUSTOMIZATION & AUDIO SETTINGS ================= -->
-  <div id="settings-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true"
-    aria-labelledby="modal-settings-title">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3 id="modal-settings-title">✨ Personalize Birthday Surprise</h3>
-        <button id="btn-close-settings" class="modal-close-btn" aria-label="Close settings">&times;</button>
-      </div>
-      <div class="modal-body">
-        <p class="modal-desc">Customize the name, heartfelt messages, and audio for your beloved friend. Changes take
-          effect instantly!</p>
-
-        <div class="form-group">
-          <label for="input-recipient-name">Recipient's Name / Pet Name:</label>
-          <input type="text" id="input-recipient-name" value="My Beloved Bestie"
-            placeholder="e.g. Elena, Honey, Sweetheart, Alex...">
-        </div>
-
-        <div class="form-group">
-          <label for="input-sender-name">Your Signature / Name:</label>
-          <input type="text" id="input-sender-name" value="Your Forever Person ♡"
-            placeholder="e.g. Always Yours, Max...">
-        </div>
-
-        <div class="form-group">
-          <label for="input-hero-text">Welcome Message:</label>
-          <textarea id="input-hero-text" rows="3" placeholder="Write a short sweet welcome note..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label for="input-letter-text">Love Letter in Envelope:</label>
-          <textarea id="input-letter-text" rows="3" placeholder="Write the secret envelope letter..."></textarea>
-        </div>
-
-        <div class="form-divider"></div>
-
-        <h4>🎵 Audio Experience Controls</h4>
-        <div class="form-group">
-          <label for="audio-volume-slider">Master Volume: <span id="volume-val-display">80%</span></label>
-          <input type="range" id="audio-volume-slider" min="0" max="100" value="80">
-        </div>
-
-        <div class="audio-mode-selector">
-          <label class="radio-card">
-            <input type="radio" name="audioMode" value="procedural" checked id="radio-audio-synth">
-            <span class="radio-content">
-              <strong>✨ Procedural Melodies (Included)</strong>
-              <small>Dynamic romantic chiptune/music-box tracks tailored per section (works offline, zero
-                setup!)</small>
-            </span>
-          </label>
-          <label class="radio-card">
-            <input type="radio" name="audioMode" value="custom" id="radio-audio-custom">
-            <span class="radio-content">
-              <strong>📁 Custom Audio Files (Optional)</strong>
-              <small>Load your own favorite MP3 songs for each section or upload audio from your device!</small>
-            </span>
-          </label>
-        </div>
-
-        <div id="custom-audio-panel" class="custom-audio-panel hidden">
-          <p class="custom-audio-info">Select an audio file from your device to play as background music:</p>
-          <input type="file" id="user-audio-file" accept="audio/*">
-        </div>
-
-        <div class="modal-actions">
-          <button id="btn-save-settings" class="btn-primary">Save & Apply Changes 💖</button>
-          <button id="btn-reset-settings" class="btn-ghost">Reset to Defaults</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- Big Interactive Confetti / Fireworks Canvas -->
   <canvas id="fireworks-canvas"></canvas>

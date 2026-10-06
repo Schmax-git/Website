@@ -18,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const audioIcon = document.getElementById('audio-icon');
   const btnAudioVolume = document.getElementById('btn-audio-volume');
   const volumeIcon = document.getElementById('volume-icon');
-  const btnSettingsOpen = document.getElementById('btn-settings-open');
 
   const navDots = document.querySelectorAll('.nav-dot');
   const sections = document.querySelectorAll('.section-wrapper');
@@ -60,21 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSendHug = document.getElementById('btn-send-hug');
   const hugCountNumber = document.getElementById('hug-count-number');
 
-  // Settings Modal Elements
-  const settingsModal = document.getElementById('settings-modal');
-  const btnCloseSettings = document.getElementById('btn-close-settings');
-  const btnSaveSettings = document.getElementById('btn-save-settings');
-  const btnResetSettings = document.getElementById('btn-reset-settings');
-  const inputRecipient = document.getElementById('input-recipient-name');
-  const inputSender = document.getElementById('input-sender-name');
-  const inputHeroText = document.getElementById('input-hero-text');
-  const inputLetterText = document.getElementById('input-letter-text');
-  const audioVolumeSlider = document.getElementById('audio-volume-slider');
-  const volumeValDisplay = document.getElementById('volume-val-display');
-  const radioAudioSynth = document.getElementById('radio-audio-synth');
-  const radioAudioCustom = document.getElementById('radio-audio-custom');
-  const customAudioPanel = document.getElementById('custom-audio-panel');
-  const userAudioFileInput = document.getElementById('user-audio-file');
+
 
   // Canvas
   const ambientCanvas = document.getElementById('ambient-canvas');
@@ -425,27 +410,6 @@ document.addEventListener('DOMContentLoaded', () => {
     volumeIcon.textContent = isMuted ? '🔇' : '🔊';
   });
 
-  audioVolumeSlider.addEventListener('input', (e) => {
-    const val = parseInt(e.target.value, 10);
-    volumeValDisplay.textContent = val + '%';
-    window.audioEngine.setVolume(val / 100);
-  });
-
-  radioAudioSynth.addEventListener('change', () => {
-    customAudioPanel.classList.add('hidden');
-    window.audioEngine.setProceduralMode();
-  });
-
-  radioAudioCustom.addEventListener('change', () => {
-    customAudioPanel.classList.remove('hidden');
-  });
-
-  userAudioFileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      window.audioEngine.loadCustomAudio(file);
-    }
-  });
 
   let scrollTicking = false;
   let activeSectionTrack = -1;
